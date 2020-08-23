@@ -492,7 +492,65 @@ module.exports = function (options, source) {
   }
 };
 
-},{"../internals/global":"../node_modules/core-js-pure/internals/global.js","../internals/object-get-own-property-descriptor":"../node_modules/core-js-pure/internals/object-get-own-property-descriptor.js","../internals/is-forced":"../node_modules/core-js-pure/internals/is-forced.js","../internals/path":"../node_modules/core-js-pure/internals/path.js","../internals/function-bind-context":"../node_modules/core-js-pure/internals/function-bind-context.js","../internals/create-non-enumerable-property":"../node_modules/core-js-pure/internals/create-non-enumerable-property.js","../internals/has":"../node_modules/core-js-pure/internals/has.js"}],"../node_modules/core-js-pure/internals/is-array.js":[function(require,module,exports) {
+},{"../internals/global":"../node_modules/core-js-pure/internals/global.js","../internals/object-get-own-property-descriptor":"../node_modules/core-js-pure/internals/object-get-own-property-descriptor.js","../internals/is-forced":"../node_modules/core-js-pure/internals/is-forced.js","../internals/path":"../node_modules/core-js-pure/internals/path.js","../internals/function-bind-context":"../node_modules/core-js-pure/internals/function-bind-context.js","../internals/create-non-enumerable-property":"../node_modules/core-js-pure/internals/create-non-enumerable-property.js","../internals/has":"../node_modules/core-js-pure/internals/has.js"}],"../node_modules/core-js-pure/internals/get-built-in.js":[function(require,module,exports) {
+
+var path = require('../internals/path');
+var global = require('../internals/global');
+
+var aFunction = function (variable) {
+  return typeof variable == 'function' ? variable : undefined;
+};
+
+module.exports = function (namespace, method) {
+  return arguments.length < 2 ? aFunction(path[namespace]) || aFunction(global[namespace])
+    : path[namespace] && path[namespace][method] || global[namespace] && global[namespace][method];
+};
+
+},{"../internals/path":"../node_modules/core-js-pure/internals/path.js","../internals/global":"../node_modules/core-js-pure/internals/global.js"}],"../node_modules/core-js-pure/internals/engine-user-agent.js":[function(require,module,exports) {
+var getBuiltIn = require('../internals/get-built-in');
+
+module.exports = getBuiltIn('navigator', 'userAgent') || '';
+
+},{"../internals/get-built-in":"../node_modules/core-js-pure/internals/get-built-in.js"}],"../node_modules/core-js-pure/modules/web.timers.js":[function(require,module,exports) {
+
+var $ = require('../internals/export');
+var global = require('../internals/global');
+var userAgent = require('../internals/engine-user-agent');
+
+var slice = [].slice;
+var MSIE = /MSIE .\./.test(userAgent); // <- dirty ie9- check
+
+var wrap = function (scheduler) {
+  return function (handler, timeout /* , ...arguments */) {
+    var boundArgs = arguments.length > 2;
+    var args = boundArgs ? slice.call(arguments, 2) : undefined;
+    return scheduler(boundArgs ? function () {
+      // eslint-disable-next-line no-new-func
+      (typeof handler == 'function' ? handler : Function(handler)).apply(this, args);
+    } : handler, timeout);
+  };
+};
+
+// ie9- setTimeout & setInterval additional parameters fix
+// https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
+$({ global: true, bind: true, forced: MSIE }, {
+  // `setTimeout` method
+  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
+  setTimeout: wrap(global.setTimeout),
+  // `setInterval` method
+  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-setinterval
+  setInterval: wrap(global.setInterval)
+});
+
+},{"../internals/export":"../node_modules/core-js-pure/internals/export.js","../internals/global":"../node_modules/core-js-pure/internals/global.js","../internals/engine-user-agent":"../node_modules/core-js-pure/internals/engine-user-agent.js"}],"../node_modules/core-js-pure/stable/set-timeout.js":[function(require,module,exports) {
+require('../modules/web.timers');
+var path = require('../internals/path');
+
+module.exports = path.setTimeout;
+
+},{"../modules/web.timers":"../node_modules/core-js-pure/modules/web.timers.js","../internals/path":"../node_modules/core-js-pure/internals/path.js"}],"../node_modules/@babel/runtime-corejs3/core-js-stable/set-timeout.js":[function(require,module,exports) {
+module.exports = require("core-js-pure/stable/set-timeout");
+},{"core-js-pure/stable/set-timeout":"../node_modules/core-js-pure/stable/set-timeout.js"}],"../node_modules/core-js-pure/internals/is-array.js":[function(require,module,exports) {
 var classof = require('../internals/classof-raw');
 
 // `IsArray` abstract operation
@@ -649,26 +707,7 @@ module.exports = function (originalArray, length) {
   } return new (C === undefined ? Array : C)(length === 0 ? 0 : length);
 };
 
-},{"../internals/is-object":"../node_modules/core-js-pure/internals/is-object.js","../internals/is-array":"../node_modules/core-js-pure/internals/is-array.js","../internals/well-known-symbol":"../node_modules/core-js-pure/internals/well-known-symbol.js"}],"../node_modules/core-js-pure/internals/get-built-in.js":[function(require,module,exports) {
-
-var path = require('../internals/path');
-var global = require('../internals/global');
-
-var aFunction = function (variable) {
-  return typeof variable == 'function' ? variable : undefined;
-};
-
-module.exports = function (namespace, method) {
-  return arguments.length < 2 ? aFunction(path[namespace]) || aFunction(global[namespace])
-    : path[namespace] && path[namespace][method] || global[namespace] && global[namespace][method];
-};
-
-},{"../internals/path":"../node_modules/core-js-pure/internals/path.js","../internals/global":"../node_modules/core-js-pure/internals/global.js"}],"../node_modules/core-js-pure/internals/engine-user-agent.js":[function(require,module,exports) {
-var getBuiltIn = require('../internals/get-built-in');
-
-module.exports = getBuiltIn('navigator', 'userAgent') || '';
-
-},{"../internals/get-built-in":"../node_modules/core-js-pure/internals/get-built-in.js"}],"../node_modules/core-js-pure/internals/engine-v8-version.js":[function(require,module,exports) {
+},{"../internals/is-object":"../node_modules/core-js-pure/internals/is-object.js","../internals/is-array":"../node_modules/core-js-pure/internals/is-array.js","../internals/well-known-symbol":"../node_modules/core-js-pure/internals/well-known-symbol.js"}],"../node_modules/core-js-pure/internals/engine-v8-version.js":[function(require,module,exports) {
 
 
 var global = require('../internals/global');
@@ -1786,6 +1825,8 @@ module.exports = {
 },{"./angry.jpg":"../src/img/angry.jpg","./drink.jpg":"../src/img/drink.jpg","./food.jpg":"../src/img/food.jpg","./grandma.jpg":"../src/img/grandma.jpg","./happy.jpg":"../src/img/happy.jpg","./home.jpg":"../src/img/home.jpg","./hurt.jpg":"../src/img/hurt.jpg","./outside.jpg":"../src/img/outside.jpg","./sad.jpg":"../src/img/sad.jpg","./scared.jpg":"../src/img/scared.jpg","./school.jpg":"../src/img/school.jpg","./tired.jpg":"../src/img/tired.jpg"}],"../src/index.js":[function(require,module,exports) {
 "use strict";
 
+var _setTimeout2 = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/set-timeout"));
+
 var _concat = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/instance/concat"));
 
 var _forEach = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/instance/for-each"));
@@ -1848,11 +1889,21 @@ function createBox(item) {
   var image = item.image,
       text = item.text;
   box.classList.add('box');
-  box.innerHTML = (0, _concat.default)(_context = (0, _concat.default)(_context2 = "\n    <img src=\"".concat(image, "\" alt=\"")).call(_context2, text, "\" />\n    <p class=\"info\">")).call(_context, text, "</p>\n  "); // @todo - speak event
+  box.innerHTML = (0, _concat.default)(_context = (0, _concat.default)(_context2 = "\n    <img src=\"".concat(image, "\" alt=\"")).call(_context2, text, "\" />\n    <p class=\"info\">")).call(_context, text, "</p>\n  ");
+  box.addEventListener('click', function () {
+    setTextMessage(text);
+    speakText(); // Add active effect
 
+    box.classList.add('active');
+    (0, _setTimeout2.default)(function () {
+      return box.classList.remove('active');
+    }, 800);
+  });
   main.appendChild(box);
-} // Store voices
+} // Init speech synth
 
+
+var message = new SpeechSynthesisUtterance(); // Store voices
 
 var voices = [];
 
@@ -1866,6 +1917,16 @@ function getVoices() {
     option.innerText = (0, _concat.default)(_context3 = "".concat(voice.name, " ")).call(_context3, voice.lang);
     voicesSelect.appendChild(option);
   });
+} // Set text
+
+
+function setTextMessage(text) {
+  message.text = text;
+} // Speak text
+
+
+function speakText() {
+  speechSynthesis.speak(message);
 } // Voices changed
 
 
@@ -1879,7 +1940,7 @@ closeBtn.addEventListener('click', function () {
   return document.getElementById('text-box').classList.remove('show');
 });
 getVoices();
-},{"@babel/runtime-corejs3/core-js-stable/instance/concat":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/concat.js","@babel/runtime-corejs3/core-js-stable/instance/for-each":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/for-each.js","./scss/main.scss":"../src/scss/main.scss","./img/*.jpg":"../src/img/*.jpg"}],"C:/Users/girwa/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"@babel/runtime-corejs3/core-js-stable/set-timeout":"../node_modules/@babel/runtime-corejs3/core-js-stable/set-timeout.js","@babel/runtime-corejs3/core-js-stable/instance/concat":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/concat.js","@babel/runtime-corejs3/core-js-stable/instance/for-each":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/for-each.js","./scss/main.scss":"../src/scss/main.scss","./img/*.jpg":"../src/img/*.jpg"}],"C:/Users/girwa/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
