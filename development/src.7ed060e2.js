@@ -1851,7 +1851,34 @@ function createBox(item) {
   box.innerHTML = (0, _concat.default)(_context = (0, _concat.default)(_context2 = "\n    <img src=\"".concat(image, "\" alt=\"")).call(_context2, text, "\" />\n    <p class=\"info\">")).call(_context, text, "</p>\n  "); // @todo - speak event
 
   main.appendChild(box);
-}
+} // Store voices
+
+
+var voices = [];
+
+function getVoices() {
+  voices = speechSynthesis.getVoices();
+  (0, _forEach.default)(voices).call(voices, function (voice) {
+    var _context3;
+
+    var option = document.createElement('option');
+    option.value = voice.name;
+    option.innerText = (0, _concat.default)(_context3 = "".concat(voice.name, " ")).call(_context3, voice.lang);
+    voicesSelect.appendChild(option);
+  });
+} // Voices changed
+
+
+speechSynthesis.addEventListener('voiceschanged', getVoices); // Toggle text box
+
+toggleBtn.addEventListener('click', function () {
+  return document.getElementById('text-box').classList.toggle('show');
+}); // Close button
+
+closeBtn.addEventListener('click', function () {
+  return document.getElementById('text-box').classList.remove('show');
+});
+getVoices();
 },{"@babel/runtime-corejs3/core-js-stable/instance/concat":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/concat.js","@babel/runtime-corejs3/core-js-stable/instance/for-each":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/for-each.js","./scss/main.scss":"../src/scss/main.scss","./img/*.jpg":"../src/img/*.jpg"}],"C:/Users/girwa/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
